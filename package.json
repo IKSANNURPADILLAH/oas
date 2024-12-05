@@ -8,7 +8,7 @@
     "setup": "node setup.js",
     "autoreff": "node autoreff.js"
   },
-  "author": "@/IKSANNURPADILLAH",
+  "author": "@Zlkcyber",
   "license": "MIT",
   "description": "oasis ai bot auto create multiple providers",
   "dependencies": {

@@ -1,10 +1,23 @@
 import requests
 
+# Read authorization token from tokens.txt
+try:
+    with open('tokens.txt', 'r') as token_file:
+        auth_token = token_file.readline().strip()
+        if not auth_token:
+            raise ValueError("Token file is empty. Please add a valid token to tokens.txt.")
+except FileNotFoundError:
+    print("File 'tokens.txt' not found. Please create the file and add your token.")
+    exit()
+except ValueError as e:
+    print(e)
+    exit()
+
 # Set headers and base URL
 headers = {
     'accept': '*/*',
     'accept-language': 'en-US,en;q=0.9',
-    'authorization': '', #input token
+    'authorization': auth_token,  # Token read from file
     'content-type': 'application/json',
     'origin': 'https://dashboard.oasis.ai',
     'referer': 'https://dashboard.oasis.ai/',
@@ -14,7 +27,17 @@ url_fetch = 'https://api.oasis.ai/internal/providerList,providerList,providerPoi
 
 # Fetch data and extract IDs
 response = requests.get(url_fetch, headers=headers)
-data = response.json()
+if response.status_code == 200:
+    try:
+        data = response.json()
+    except ValueError:
+        print("Failed to parse JSON response.")
+        print(f"Response Text: {response.text}")
+        exit()
+else:
+    print(f"Failed to fetch data. HTTP Status: {response.status_code}")
+    print(f"Response Text: {response.text}")
+    exit()
 
 def extract_ids(data):
     """ Recursively extract all 'id' values from nested JSON. """
@@ -30,17 +53,22 @@ def extract_ids(data):
 
 # Extract unique IDs and save them to a file
 unique_ids = sorted(set(extract_ids(data)))
+if not unique_ids:
+    print("No IDs found in the fetched data.")
+    exit()
+
 with open('id.txt', 'w') as file:
     file.writelines(f'{id}\n' for id in unique_ids)
 
-print("Unique IDs saved to id.txt.")
+print(f"Unique IDs saved to id.txt: {unique_ids}")
 
 # Read IDs from file and delete them
-with open('id.txt', 'r') as file:
-    ids = [line.strip() for line in file]
-
 url_delete = 'https://api.oasis.ai/internal/providerDelete?batch=1'
-for id_value in ids:
+for id_value in unique_ids:
     data = {"0": {"json": {"id": id_value}}}
     response = requests.post(url_delete, headers=headers, json=data)
-    print(f'Response for ID {id_value}: {response.text}')
+    if response.status_code == 200:
+        print(f"Successfully deleted ID {id_value}")
+    else:
+        print(f"Failed to delete ID {id_value}. HTTP Status: {response.status_code}")
+        print(f"Response Text: {response.text}")

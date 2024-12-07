@@ -1,3 +1,6 @@
+#check and delete your providers
+#Here's the final version of the script which will clear the contents of id.txt, providers.txt, and tokens.txt after processing.
+
 import requests
 
 # Read authorization token from tokens.txt
@@ -60,7 +63,7 @@ if not unique_ids:
 with open('id.txt', 'w') as file:
     file.writelines(f'{id}\n' for id in unique_ids)
 
-print(f"Unique IDs saved to id.txt: {unique_ids}")
+#print(f"Unique IDs saved to id.txt: {unique_ids}")
 
 # Read IDs from file and delete them
 url_delete = 'https://api.oasis.ai/internal/providerDelete?batch=1'
@@ -72,3 +75,15 @@ for id_value in unique_ids:
     else:
         print(f"Failed to delete ID {id_value}. HTTP Status: {response.status_code}")
         print(f"Response Text: {response.text}")
+
+# Clear the content of id.txt
+with open('id.txt', 'w') as file:
+    file.write('')
+
+# Clear the content of providers.txt
+with open('providers.txt', 'w') as file:
+    file.write('')
+
+# Clear the content of tokens.txt
+with open('tokens.txt', 'w') as file:
+    file.write('')
